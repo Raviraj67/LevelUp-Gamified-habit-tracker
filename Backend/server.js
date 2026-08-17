@@ -55,5 +55,11 @@ initLeaderboardSocket(io);
 app.use('/api/quests', require('./routes/questRoutes'));
 app.use('/api/leaderboard', require('./routes/leaderboardRoutes'));
 
+
+// Initialize Daily Reset Cron Job
+const startDailyResetJob = require('./jobs/dailyReset');
+startDailyResetJob();
+
 module.exports = { app, server };
+
 
