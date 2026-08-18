@@ -1,8 +1,8 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const { getUserModel } = require('../config/db');
 
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
+  return jwt.sign({ id }, process.env.JWT_SECRET || 'levelup_super_secret_jwt_key_2026', {
     expiresIn: '30d',
   });
 };
@@ -25,6 +25,7 @@ const formatUserResponse = (user) => ({
  */
 const signup = async (req, res) => {
   try {
+    const User = getUserModel();
     const { username, email, password } = req.body;
 
     if (!username || !email || !password) {
@@ -63,6 +64,7 @@ const signup = async (req, res) => {
  */
 const login = async (req, res) => {
   try {
+    const User = getUserModel();
     const { email, password } = req.body;
 
     if (!email || !password) {

@@ -1,5 +1,4 @@
-const Quest = require('../models/Quest');
-const User = require('../models/User');
+const { getUserModel, getQuestModel } = require('../config/db');
 const { emitLeaderboardUpdate } = require('../sockets/leaderboardSocket');
 
 // Helper: Date normalization for streak calculations
@@ -21,13 +20,14 @@ const isYesterday = (d1, d2) => {
 // @desc    Get user's quests for today
 exports.getQuests = async (req, res) => {
   try {
+    const Quest = getQuestModel();
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
 
     const quests = await Quest.find({
       userId: req.user._id,
       createdAt: { $gte: startOfDay },
-    }).sort({ createdAt: -1 });
+    });
 
     res.status(200).json(quests);
   } catch (error) {
@@ -39,6 +39,7 @@ exports.getQuests = async (req, res) => {
 // @desc    Create a new quest
 exports.createQuest = async (req, res) => {
   try {
+    const Quest = getQuestModel();
     const { title, difficulty } = req.body;
 
     if (!title) {
@@ -61,6 +62,9 @@ exports.createQuest = async (req, res) => {
 // @desc    Complete quest, award XP, update level and streak
 exports.completeQuest = async (req, res) => {
   try {
+    const Quest = getQuestModel();
+    const User = getUserModel();
+
     const quest = await Quest.findOne({ _id: req.params.id, userId: req.user._id });
 
     if (!quest) {
@@ -94,14 +98,13 @@ exports.completeQuest = async (req, res) => {
       user.currentStreak = 1;
     }
 
-    user.longestStreak = Math.max(user.longestStreak, user.currentStreak);
+    user.longestStreak = Math.max(user.longestStreak || 0, user.currentStreak);
     user.lastQuestCompletedDate = now;
 
     await user.save();
 
     // Trigger real-time leaderboard update broadcast
     emitLeaderboardUpdate();
-
 
     res.status(200).json({
       message: 'Quest completed successfully',
@@ -123,6 +126,7 @@ exports.completeQuest = async (req, res) => {
 // @desc    Delete a quest
 exports.deleteQuest = async (req, res) => {
   try {
+    const Quest = getQuestModel();
     const quest = await Quest.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
 
     if (!quest) {
