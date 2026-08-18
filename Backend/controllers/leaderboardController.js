@@ -1,4 +1,4 @@
-const User = require('../models/User');
+const { getUserModel } = require('../config/db');
 
 /**
  * @route   GET /api/leaderboard
@@ -7,6 +7,7 @@ const User = require('../models/User');
  */
 exports.getLeaderboard = async (req, res) => {
   try {
+    const User = getUserModel();
     const users = await User.find({})
       .select('username xp level currentStreak longestStreak')
       .sort({ xp: -1 })

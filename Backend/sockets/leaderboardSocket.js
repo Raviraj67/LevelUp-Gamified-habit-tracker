@@ -1,4 +1,4 @@
-const User = require('../models/User');
+const { getUserModel } = require('../config/db');
 
 let io = null;
 
@@ -6,6 +6,7 @@ let io = null;
  * Fetches the top 20 users by cumulative XP to broadcast to connected clients.
  */
 const getLeaderboardData = async () => {
+  const User = getUserModel();
   return await User.find({})
     .select('username xp level currentStreak longestStreak')
     .sort({ xp: -1 })
